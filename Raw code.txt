@@ -1,0 +1,190 @@
+import sys
+from memory_profiler import profile
+
+
+class FirstAidKit:
+    def __init__(self, model_code, stock_count):
+        self.model_code = model_code
+        self.stock_count = stock_count
+
+
+class Order:
+    def __init__(self, order_id, model_code, quantity):
+        self.order_id = order_id
+        self.model_code = model_code
+        self.quantity = quantity
+
+
+class TanjiroSafetyProducts:
+    def __init__(self):
+        self.models = {}
+
+    def add_model(self, model):
+        if model.model_code in self.models:
+            print("Model code already exists. Please provide a unique model code.")
+            return
+        self.models[model.model_code] = model
+
+    def remove_model(self, model_code):
+        if model_code in self.models:
+            del self.models[model_code]
+            print("Model removed successfully.")
+        else:
+            print("Model not found.")
+
+    def add_order(self, order_id, model_code, quantity):
+        if model_code not in self.models:
+            print("Model not available.")
+            return
+
+        model = self.models[model_code]
+        if model.stock_count < quantity:
+            print("Insufficient stock for the requested quantity.")
+            return
+
+        new_order = Order(order_id, model_code, quantity)
+        model.stock_count -= quantity
+        print("Order placed successfully.")
+
+    def delete_order(self, order_id):
+        if order_id in self.models:
+            model = self.models[order_id]
+            model.stock_count += model.quantity
+            del self.models[order_id]
+            print("Order deleted successfully.")
+        else:
+            print("Order not found.")
+
+    def modify_order(self, order_id, new_quantity):
+        if order_id in self.models:
+            model = self.models[order_id]
+            model.stock_count += model.quantity
+            model.quantity = new_quantity
+            model.stock_count -= new_quantity
+            print("Order modified successfully.")
+        else:
+            print("Order not found.")
+
+    def display_models(self):
+        print("Models:")
+        for model_code, model in self.models.items():
+            print(f"Model Code: {model_code}, Stock Count: {model.stock_count}")
+
+    def add_model_interface(self):
+        model_code = input("Enter Model Code: ")
+        if model_code in self.models:
+            print("Model code already exists. Please provide a unique model code.")
+            return
+
+        stock_count = input("Enter Stock Count: ")
+        if not validate_positive_integer(stock_count):
+            print("Invalid stock count. Please provide a positive integer value.")
+            return
+
+        model = FirstAidKit(model_code, int(stock_count))
+        self.add_model(model)
+        self.display_models()
+
+    def remove_model_interface(self):
+        model_code = input("Enter Model Code to remove: ")
+        self.remove_model(model_code)
+        self.display_models()
+
+
+def validate_order_id(order_id):
+    if len(order_id) != 4 or not order_id.isdigit():
+        return False
+    return True
+
+
+def validate_positive_integer(value):
+    try:
+        value = int(value)
+        if value > 0:
+            return True
+        return False
+    except ValueError:
+        return False
+
+
+@profile
+def main():
+    tanjiro = TanjiroSafetyProducts()
+
+    tanjiro.add_model(FirstAidKit("M0001", 500))
+    tanjiro.add_model(FirstAidKit("M0002", 300))
+    tanjiro.add_model(FirstAidKit("M0003", 200))
+
+    while True:
+        print("\n--- Tanjiro Safety Products ---")
+        tanjiro.display_models()
+        print("1. Add Order")
+        print("2. Modify Order")
+        print("3. Delete Order")
+        print("4. Display Models")
+        print("5. Add Model")
+        print("6. Remove Model")
+        print("7. Exit")
+
+        choice = input("Enter your choice (1-7): ")
+
+        if choice == "1":
+            while True:
+                order_id = input("Enter Order ID (4 digits): ")
+                if not validate_order_id(order_id):
+                    print("Invalid Order ID. Please provide a 4-digit numerical value.")
+                    continue
+                if order_id in tanjiro.models:
+                    print("Order ID already exists. Please provide a unique Order ID.")
+                    continue
+                break
+
+            model_code = input("Enter Model Code: ")
+            if model_code not in tanjiro.models:
+                print("Model not found.")
+                continue
+
+            quantity = input("Enter Quantity: ")
+            if not validate_positive_integer(quantity):
+                print("Invalid quantity. Please provide a positive integer value.")
+                continue
+
+            tanjiro.add_order(order_id, model_code, int(quantity))
+            tanjiro.display_models()
+
+        elif choice == "2":
+            order_id = input("Enter Order ID to modify: ")
+            if order_id in tanjiro.models:
+                new_quantity = input("Enter New Quantity: ")
+                if not validate_positive_integer(new_quantity):
+                    print("Invalid quantity. Please provide a positive integer value.")
+                    continue
+                tanjiro.modify_order(order_id, int(new_quantity))
+                tanjiro.display_models()
+            else:
+                print("Order not found.")
+
+        elif choice == "3":
+            order_id = input("Enter Order ID to delete: ")
+            tanjiro.delete_order(order_id)
+            tanjiro.display_models()
+
+        elif choice == "4":
+            tanjiro.display_models()
+
+        elif choice == "5":
+            tanjiro.add_model_interface()
+
+        elif choice == "6":
+            tanjiro.remove_model_interface()
+
+        elif choice == "7":
+            print("Exiting the program...")
+            break
+
+        else:
+            print("Invalid choice. Please select a valid option (1-7).")
+
+
+if __name__ == '__main__':
+    main()
